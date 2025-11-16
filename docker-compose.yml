@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 3x-ui - Веб-панель управления Xray
+  # Официальный образ: https://github.com/MHSanaei/3x-ui
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # Язык интерфейса
+      - XRAY_VMESS_AEAD_FORCED=false
+    volumes:
+      # База данных и конфигурация
+      - ./data/db:/etc/x-ui
+      # Логи
+      - ./data/logs:/var/log/3x-ui
+      # Сертификаты SSL (если нужны)
+      - ./data/cert:/root/cert
+    labels:
+      - "com.docker.compose.project=reer-vpn"
+    # Порты (используется host mode, но для справки):
+    # 2053 - Web панель управления
+    # 443 - VLESS Reality
+    # 80 - HTTP (опционально)
+    # 54321 - Альтернативный порт панели
+
+  # Watchtower - автоматическое обновление контейнеров
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: reer-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Проверять обновления раз в день
+      - WATCHTOWER_POLL_INTERVAL=86400
+      # Очищать старые образы
+      - WATCHTOWER_CLEANUP=true
+      # Уведомления (опционально)
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # Следить только за контейнерами этого проекта
+      - WATCHTOWER_LABEL_ENABLE=true
+    labels:
+      - "com.docker.compose.project=reer-vpn"
+
+networks:
+  default:
+    name: reer-network

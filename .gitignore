@@ -1,0 +1,48 @@
+# ReeR VPN - Git Ignore
+
+# Данные и конфигурации (содержат приватные ключи!)
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Логи
+*.log
+logs/
+data/logs/
+
+# Backup файлы
+backups/
+*.tar.gz
+*.zip
+*.bak
+
+# Информация об установке (содержит пароли!)
+install-info.txt
+
+# Сертификаты
+*.pem
+*.key
+*.crt
+*.cer
+data/cert/
+
+# Environment файлы
+.env
+.env.local
+.env.*.local
+
+# Temporary файлы
+*.tmp
+*.temp
+*.swp
+*~
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker volumes
+volumes/
