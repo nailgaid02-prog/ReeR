@@ -1,0 +1,54 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+ARCHITECTURE.md
+CHANGELOG.md
+CONTRIBUTING.md
+DEPLOY.md
+FAQ.md
+QUICKSTART.md
+README.md
+SECURITY.md
+
+# Development
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+data/logs/
+
+# Runtime data
+data/db/
+data/cert/
+*.pid
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Temporary files
+tmp/
+temp/
+install-info.txt

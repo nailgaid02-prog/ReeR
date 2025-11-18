@@ -11,6 +11,10 @@ services:
     environment:
       # Язык интерфейса
       - XRAY_VMESS_AEAD_FORCED=false
+      # Часовой пояс
+      - TZ=${TZ:-Europe/Moscow}
+      # Уровень логирования
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       # База данных и конфигурация
       - ./data/db:/etc/x-ui
@@ -20,11 +24,19 @@ services:
       - ./data/cert:/root/cert
     labels:
       - "com.docker.compose.project=reer-vpn"
+      # Включить автообновления через Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PANEL_PORT:-54321}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     # Порты (используется host mode, но для справки):
-    # 2053 - Web панель управления
-    # 443 - VLESS Reality
+    # ${PANEL_PORT:-54321} - Web панель управления
+    # ${VLESS_PORT:-443} - VLESS Reality
+    # ${VMESS_PORT:-2053} - VMess WebSocket
     # 80 - HTTP (опционально)
-    # 54321 - Альтернативный порт панели
 
   # Watchtower - автоматическое обновление контейнеров
   watchtower:
@@ -34,16 +46,21 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # Проверять обновления раз в день
-      - WATCHTOWER_POLL_INTERVAL=86400
+      # Проверять обновления
+      - WATCHTOWER_POLL_INTERVAL=${UPDATE_INTERVAL:-86400}
       # Очищать старые образы
-      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_CLEANUP=${WATCHTOWER_CLEANUP:-true}
       # Уведомления (опционально)
-      - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      # Следить только за контейнерами этого проекта
+      - WATCHTOWER_NOTIFICATIONS=${WATCHTOWER_NOTIFICATIONS:-}
+      - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL:-}
+      # Следить только за контейнерами с меткой
       - WATCHTOWER_LABEL_ENABLE=true
+      # Часовой пояс
+      - TZ=${TZ:-Europe/Moscow}
     labels:
       - "com.docker.compose.project=reer-vpn"
+    profiles:
+      - ${WATCHTOWER_ENABLED:-enabled}
 
 networks:
   default:
