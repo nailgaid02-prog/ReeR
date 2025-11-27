@@ -1,0 +1,22 @@
+{
+  "name": "reer-proxy-examples",
+  "version": "1.0.0",
+  "description": "Examples for using ReeR HTTP Proxy with OpenAI API",
+  "main": "nodejs-axios.js",
+  "scripts": {
+    "test": "node nodejs-axios.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "https-proxy-agent": "^7.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "proxy",
+    "openai",
+    "russia",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT"
+}

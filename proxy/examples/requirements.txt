@@ -1,0 +1,2 @@
+# Python dependencies for ReeR Proxy examples
+requests>=2.31.0
