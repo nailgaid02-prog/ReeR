@@ -1,0 +1,22 @@
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Squid cache (if enabled)
+cache/
+
+# Authentication files
+passwords
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
