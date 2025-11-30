@@ -1,47 +1,14 @@
-version: '3.8'
-
 services:
-  squid:
-    image: ubuntu/squid:latest
+  reer-proxy:
+    image: sameersbn/squid:3.5.27-2
     container_name: reer-proxy
-    restart: unless-stopped
-    # Команда: инициализация кэша + запуск Squid (без флага -C)
-    command: sh -c "squid -z 2>/dev/null || true && exec squid -f /etc/squid/squid.conf -NYd 1"
-    ports:
-      # HTTP Proxy порт - доступен извне для всех API
-      # Works with: OpenAI, Claude, Gemini, Grok, any HTTPS API
-      - "3128:3128"
-    volumes:
-      # Конфигурация (read-only для безопасности)
-      - ./squid.conf:/etc/squid/squid.conf:ro
-      # Логи (опционально, можно закомментировать)
-      - ./logs:/var/log/squid
-      # Кэш директория (ТРЕБУЕТСЯ для ubuntu/squid)
-      - ./cache:/var/spool/squid
-    environment:
-      - TZ=Europe/Moscow
-    # Лимиты для высокой нагрузки (100+ параллельных запросов)
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-    # Ресурсы (можно увеличить для больших нагрузок)
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-    # Healthcheck - простая проверка что Squid жив
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3128 || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    labels:
-      - "com.docker.compose.project=reer-proxy"
+    restart: always
 
-networks:
-  default:
-    name: reer-proxy-network
+    # Проксируем порт Squid наружу
+    ports:
+      - "3128:3128"
+
+    # Монтируем наш конфиг и кэш-директорию
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+      - ./cache:/var/spool/squid
