@@ -6,33 +6,35 @@ services:
     container_name: reer-proxy
     restart: unless-stopped
     ports:
-      # HTTP Proxy порт
+      # HTTP Proxy порт - доступен извне для всех API
+      # Works with: OpenAI, Claude, Gemini, Grok, any HTTPS API
       - "3128:3128"
     volumes:
-      # Конфигурация
+      # Конфигурация (read-only для безопасности)
       - ./squid.conf:/etc/squid/squid.conf:ro
-      # Логи (опционально)
+      # Логи (опционально, можно закомментировать)
       - ./logs:/var/log/squid
     environment:
       - TZ=Europe/Moscow
-    # Лимиты для высокой нагрузки
+    # Лимиты для высокой нагрузки (100+ параллельных запросов)
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
-    # Ресурсы
+    # Ресурсы (можно увеличить для больших нагрузок)
     deploy:
       resources:
         limits:
           memory: 512M
         reservations:
           memory: 256M
+    # Healthcheck - простая проверка что Squid жив
     healthcheck:
-      test: ["CMD", "squid", "-k", "check"]
+      test: ["CMD-SHELL", "nc -z localhost 3128 || exit 1"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     labels:
       - "com.docker.compose.project=reer-proxy"
 
