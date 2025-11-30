@@ -32,17 +32,31 @@ echo -e "${YELLOW}📦 Создание директории для логов..
 mkdir -p logs
 
 echo -e "${YELLOW}🔧 Остановка старых контейнеров...${NC}"
-docker-compose down 2>/dev/null || true
+docker compose down 2>/dev/null || true
+
+echo -e "${YELLOW}🔥 Проверка firewall (порт 3128)...${NC}"
+if command -v ufw &> /dev/null; then
+    if ufw status | grep -q "Status: active"; then
+        if ! ufw status | grep -q "3128"; then
+            echo -e "${YELLOW}⚠️  Порт 3128 не открыт в firewall${NC}"
+            echo -e "${YELLOW}   Открываю порт 3128...${NC}"
+            ufw allow 3128/tcp || echo -e "${YELLOW}   (требуются права root для открытия порта)${NC}"
+        else
+            echo -e "${GREEN}   ✓ Порт 3128 уже открыт${NC}"
+        fi
+    fi
+fi
 
 echo -e "${YELLOW}🚀 Запуск прокси сервера...${NC}"
-docker-compose up -d
+docker compose up -d
 
 # Ожидание запуска
-echo -e "${YELLOW}⏳ Ожидание запуска (5 сек)...${NC}"
-sleep 5
+echo -e "${YELLOW}⏳ Ожидание запуска (10 сек)...${NC}"
+sleep 10
 
 # Проверка статуса
-if docker ps | grep -q reer-proxy; then
+CONTAINER_STATUS=$(docker ps -a --filter name=reer-proxy --format "{{.Status}}")
+if echo "$CONTAINER_STATUS" | grep -q "Up"; then
     echo -e "${GREEN}✅ Прокси сервер успешно запущен!${NC}"
     echo ""
 
@@ -87,14 +101,36 @@ if docker ps | grep -q reer-proxy; then
     echo "curl -x http://${SERVER_IP}:3128 https://api.openai.com/v1/models"
     echo ""
     echo -e "${BLUE}📊 Команды управления:${NC}"
-    echo "  docker-compose logs -f     # Просмотр логов"
-    echo "  docker-compose restart     # Перезапуск"
-    echo "  docker-compose down        # Остановка"
-    echo "  docker-compose up -d       # Запуск"
+    echo "  docker compose logs -f     # Просмотр логов"
+    echo "  docker compose restart     # Перезапуск"
+    echo "  docker compose down        # Остановка"
+    echo "  docker compose up -d       # Запуск"
+    echo ""
+    echo -e "${BLUE}🔍 Проверка работы прокси:${NC}"
+    echo "  curl -x http://${SERVER_IP}:3128 https://api.openai.com/v1/models"
+    echo "  # Должен вернуть ошибку 401 (это нормально - нет API ключа)"
     echo ""
     echo -e "${GREEN}✨ Готово! Прокси сервер работает${NC}"
+elif echo "$CONTAINER_STATUS" | grep -q "Restarting"; then
+    echo -e "${RED}❌ Контейнер постоянно перезапускается${NC}"
+    echo ""
+    echo -e "${YELLOW}📋 Последние 30 строк логов:${NC}"
+    docker logs --tail=30 reer-proxy
+    echo ""
+    echo -e "${YELLOW}💡 Возможные причины:${NC}"
+    echo "  1. Ошибка в squid.conf - проверьте синтаксис"
+    echo "  2. Недостаточно памяти - проверьте 'docker stats'"
+    echo "  3. Конфликт портов - проверьте 'netstat -tulpn | grep 3128'"
+    echo ""
+    echo -e "${BLUE}Команды для диагностики:${NC}"
+    echo "  docker logs reer-proxy           # Полные логи"
+    echo "  docker inspect reer-proxy        # Детали контейнера"
+    echo "  docker compose down && docker compose up -d  # Перезапуск"
+    exit 1
 else
-    echo -e "${RED}❌ Ошибка запуска${NC}"
-    echo "Проверьте логи: docker-compose logs"
+    echo -e "${RED}❌ Контейнер не запущен${NC}"
+    echo "Статус: $CONTAINER_STATUS"
+    echo ""
+    echo "Проверьте логи: docker compose logs"
     exit 1
 fi
