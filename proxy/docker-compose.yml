@@ -5,6 +5,8 @@ services:
     image: ubuntu/squid:latest
     container_name: reer-proxy
     restart: unless-stopped
+    # Команда: инициализация кэша + запуск Squid
+    command: sh -c "squid -z 2>/dev/null || true && exec squid -f /etc/squid/squid.conf -NYCd 1"
     ports:
       # HTTP Proxy порт - доступен извне для всех API
       # Works with: OpenAI, Claude, Gemini, Grok, any HTTPS API
@@ -14,6 +16,8 @@ services:
       - ./squid.conf:/etc/squid/squid.conf:ro
       # Логи (опционально, можно закомментировать)
       - ./logs:/var/log/squid
+      # Кэш директория (ТРЕБУЕТСЯ для ubuntu/squid)
+      - ./cache:/var/spool/squid
     environment:
       - TZ=Europe/Moscow
     # Лимиты для высокой нагрузки (100+ параллельных запросов)

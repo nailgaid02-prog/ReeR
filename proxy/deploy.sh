@@ -28,8 +28,9 @@ if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/
     exit 1
 fi
 
-echo -e "${YELLOW}📦 Создание директории для логов...${NC}"
-mkdir -p logs
+echo -e "${YELLOW}📦 Создание директорий...${NC}"
+mkdir -p logs cache
+chmod 777 cache  # Squid требует доступ на запись
 
 echo -e "${YELLOW}🔧 Остановка старых контейнеров...${NC}"
 docker compose down 2>/dev/null || true
